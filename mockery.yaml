@@ -1,0 +1,6 @@
+dir: ./internal          # root directory to scan for interfaces
+output: ./mocks         # where mocks will be generated
+outpkg: mocks           # package name for mocks
+case: underscore        # file names will be snake_case
+with-expecter: true
+keeptree: true

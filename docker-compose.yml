@@ -1,0 +1,50 @@
+version: '3.8'
+
+services:
+  postgres:
+    image: postgres:15
+    container_name: explore-postgres
+    environment:
+      POSTGRES_DB: explore
+      POSTGRES_USER: postgres
+      POSTGRES_PASSWORD: password
+    ports:
+      - "5432:5432"
+    volumes:
+      - postgres_data:/var/lib/postgresql/data
+      - ./docker/init.sql:/docker-entrypoint-initdb.d/init.sql
+    healthcheck:
+      test: ["CMD-SHELL", "pg_isready -U postgres"]
+      interval: 10s
+      timeout: 5s
+      retries: 5
+
+  redis:
+    image: "redis:7-alpine"
+    container_name: cache
+    ports:
+      - "6379:6379"
+    volumes:
+      - redis_data:/data
+
+  app:
+    build: .
+    container_name: explore-service
+    environment:
+      - DATABASE_HOST=postgres
+      - DATABASE_PORT=5432
+      - DATABASE_USER=postgres
+      - DATABASE_PASSWORD=password
+      - DATABASE_DBNAME=explore
+      - DATABASE_SSLMODE=disable
+      - SERVER_HOST=0.0.0.0
+      - SERVER_PORT=8080
+      - LOGGER_LEVEL=info
+      - REDIS_ADDRESS=redis:6379
+    ports:
+      - "8080:8080"
+    restart: on-failure
+volumes:
+  postgres_data:
+  redis_data:
+    driver: local
